@@ -1,0 +1,7 @@
+pypdf
+PyMuPDF
+python-dotenv
+google-generativeai
+openai
+requests
+numpy
