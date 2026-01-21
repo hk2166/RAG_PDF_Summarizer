@@ -1,6 +1,6 @@
-with open('../../output/chunks.txt', 'r') as f:
+with open("../../output/chunks.txt", "r") as f:
     chunks = f.read()
-    
+
 SUMMARY_PROMPT = """
 You are summarizing a technical document.
 

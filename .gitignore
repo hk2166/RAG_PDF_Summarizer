@@ -16,5 +16,5 @@ ENV/
 .idea/
 
 # Output files
-output/
+
 .streamlit/

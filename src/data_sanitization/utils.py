@@ -1,5 +1,6 @@
 from data_sanitization.extractor import extract_text_best_per_page
 
+
 def is_gibberish(text, threshold=0.3):
     if not text.strip():
         return True
@@ -14,4 +15,6 @@ def extract_clean_text(pdf_path):
     clean_lines = [line for line in lines if not is_gibberish(line)]
     return "\n".join(clean_lines)
 
-pdf_path = "../file/data.pdf"
+
+if __name__ == "__main__":
+    pdf_path = "../file/data.pdf"
