@@ -10,9 +10,11 @@ def chunk_text(text, chunk_size=800, overlap=100):
             continue
 
         if len(current_chunk) + len(para) > chunk_size:
-            chunks.append(current_chunk.strip())
+            if current_chunk.strip():
+                chunks.append(current_chunk.strip())
 
             # Create new chunk with overlap
+            # If current_chunk is empty, overlap logic might be weird, but python handles slice gracefully
             current_chunk = current_chunk[-overlap:] + "\n" + para
         else:
             current_chunk += "\n" + para
