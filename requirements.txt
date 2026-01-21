@@ -2,6 +2,8 @@ pypdf
 PyMuPDF
 python-dotenv
 google-generativeai
-openai
-requests
 numpy
+faiss-cpu
+fastapi
+uvicorn
+streamlit

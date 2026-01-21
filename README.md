@@ -1,70 +1,79 @@
-# PDF Summarizer Pipeline
+# PDF Summarizer & RAG Q&A System
 
-A systematic tool to extract, clean, chunk, and summarize PDF documents using multiple AI providers (Gemini, OpenAI, DeepSeek, Ollama).
+A comprehensive tool to extract, clean, chunk, summarize, and perform Question-Answering (RAG) on PDF documents. It uses **Google Gemini** for generation and embeddings, and **FAISS** for vector storage.
+
+## ✨ Features
+
+- **Document Processing**: Extracts text from PDFs, cleans noise (headers/footers), and chunks text intelligently.
+- **AI Summarization**: Generates concise summaries of document sections using Gemini 2.5 Flash.
+- **RAG Q&A**: Ask questions about your document and get answers based on accurate context retrieval.
+- **Dual Interfaces**:
+  - **API**: FastAPI backend for integration.
+  - **Web UI**: Modern Streamlit interface.
 
 ## 📋 Requirements
 
-- **Python**: Version 3.8 or higher
-- **Dependencies**: Install via `pip install -r requirements.txt`
+- **Python**: Version 3.8 or higher.
+- **Dependencies**:
+  ```bash
+  pip install -r requirements.txt
+  ```
 
-## 🔑 API Keys Configuration
+## 🔑 Configuration
 
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-2. Add your keys in `.env`:
+1. **Environment Variables**:
+   Create a `.env` file in the root directory:
+
    ```ini
-   OPENAI_API_KEY=sk-...
-   DEEPSEEK_API_KEY=sk-...
-   GEMINI_API_KEY=...
-   OLLAMA_API_KEY=...
+   GEMINI_API_KEY=your_api_key_here
    ```
-   _(Note: Ollama normally runs locally, but if you have authentication enabled or are using a remote instance, set the key here)_
+
+2. **Streamlit Secrets** (For hosting UI):
+   If deploying to Streamlit Cloud, add `GEMINI_API_KEY` to your app's secrets.
 
 ## 🚀 How to Run
 
-### Option 1: Automated Pipeline (Partial)
+### 1. Web UI (Recommended)
 
-Runs extraction, cleaning, and chunking automatically.
+This is the dynamic interface where you can upload ANY PDF.
+
+```bash
+cd src
+python -m streamlit run streamlit_app.py
+```
+
+- **Upload**: Drag & drop any PDF in the sidebar.
+- **Chat**: Ask questions about the uploaded document immediately.
+
+### 2. Output Data Pipeline (Manual)
+
+If you want to process the default file (`file/data.pdf`) without the UI:
 
 ```bash
 cd src
 python main.py
 ```
 
-_Outputs:_ `output/cleaned.txt`, prints chunks to console.
+_Outputs:_ `output/cleaned.txt`, `output/index.faiss`, `output/metadata.pkl`
 
-### Option 2: Individual Modules (Step-by-Step)
+### 3. API Server (FastAPI)
 
-1. **Extraction & Cleaning**:
+For backend integration (uses the processed data from step 2 or UI).
 
-   ```bash
-   python src/extractor.py  # Or rely on main.py
-   ```
+```bash
+cd src
+uvicorn api:app --reload --port 8000
+```
 
-2. **Chunking**:
+**Test Endpoint:**
 
-   ```bash
-   python src/chunking/chunker.py
-   ```
+```bash
+curl -X POST "http://127.0.0.1:8000/ask" \
+     -H "Content-Type: application/json" \
+     -d '{"question": "What is the main topic?"}'
+```
 
-   _Generates:_ `output/chunks.txt`
-
-3. **Summarization** (Runs on generated chunks):
-
-   ```bash
-   python src/summarization/summarizer.py
-   ```
-
-   _Generates:_ `output/chunk_summaries.txt`
-
-4. **Embedding** (Generate vectors for chunks):
-   ```bash
-   python src/embedding/embedding.py
-   ```
-
-## 🔄 System Flow Diagram
+## 🔄 System Architecture
 
 ```mermaid
 graph TD
@@ -73,22 +82,27 @@ graph TD
     C -->|Remove Gibberish/Headers| D[🧹 Cleaned Text]
     D -->|chunker.py| E[🧩 Text Chunks]
 
-    E -->|summarizer.py| F[🤖 AI Summarizer]
-    F --> G[gemini]
-    F --> H[openai]
-    F --> I[ollama]
-    F --> J[deepseek]
-
+    subgraph "Vector Search (RAG)"
     E -->|embedding.py| K[📐 Vector Embeddings]
+    K --> M[🗄️ FAISS Index]
+    M --> N[🔍 Retrieval System]
+    end
 
-    G & H & I & J --> L[📑 Final Summaries]
+    subgraph "Interfaces"
+    N --> P[🖥️ Streamlit UI]
+    N --> Q[🔌 FastAPI]
+    end
+
+    Q & P --> R[🤖 Gemini Answer]
 ```
 
 ## 📂 Project Structure
 
-- `src/main.py`: Orchestrator for extraction -> chunking.
-- `src/extractor.py`: Handles PDF parsing (PyMuPDF/pypdf).
-- `src/cleaner.py`: Removes noise, headers, and footers.
-- `src/chunking/`: splits text into overlapping windows.
-- `src/summarization/`: AI providers and prompt logic.
-- `src/embedding/`: Vector generation using Gemini.
+- `src/streamlit_app.py`: **Dynamic Web UI** (Upload & Chat).
+- `src/main.py`: Pipeline orchestrator (Extract -> Chunk -> Index).
+- `src/rag_core.py`: Shared logic for RAG initialization and retrieval.
+- `src/api.py`: FastAPI application.
+- `src/embedding/`: Handles Gemini Embeddings and FAISS indexing.
+- `src/summarization/`: Summarization logic modules.
+- `Dockerfile`: Configuration for Docker deployment.
+- `output/`: Stores generated artifacts (index, metadata, cleaned text).

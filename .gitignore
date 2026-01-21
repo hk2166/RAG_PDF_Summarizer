@@ -17,4 +17,4 @@ ENV/
 
 # Output files
 output/
-*.txt
+.streamlit/
