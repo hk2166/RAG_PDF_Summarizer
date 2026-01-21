@@ -50,6 +50,10 @@ def embed_chunks(chunks: list[str]) -> np.ndarray:
     embeddings = []
 
     for i, chunk in enumerate(chunks):
+        if not chunk or not chunk.strip():
+            print(f"⚠️ Skipping empty chunk {i+1}")
+            continue
+
         print(f"Embedding chunk {i+1}/{len(chunks)}")
         vector = embed_text(chunk)
         embeddings.append(vector)
